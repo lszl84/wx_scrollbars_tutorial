@@ -42,10 +42,14 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     wxPanel *buttonPanel = new wxPanel(this);
     wxButton *addRectButton = new wxButton(buttonPanel, wxID_ANY, "Add Rect");
     wxButton *removeLastButton = new wxButton(buttonPanel, wxID_ANY, "Remove Top");
+    wxButton *zoomInButton = new wxButton(buttonPanel, wxID_ANY, "Zoom In");
+    wxButton *zoomOutButton = new wxButton(buttonPanel, wxID_ANY, "Zoom Out");
 
     wxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     buttonSizer->Add(addRectButton, 0, wxEXPAND | wxALL, FromDIP(3));
     buttonSizer->Add(removeLastButton, 0, wxEXPAND | wxALL, FromDIP(3));
+    buttonSizer->Add(zoomInButton, 0, wxEXPAND | wxALL, FromDIP(3));
+    buttonSizer->Add(zoomOutButton, 0, wxEXPAND | wxALL, FromDIP(3));
 
     buttonPanel->SetSizer(buttonSizer);
 
@@ -57,6 +61,10 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 
     addRectButton->Bind(wxEVT_BUTTON, &MyFrame::OnAddButtonClick, this);
     removeLastButton->Bind(wxEVT_BUTTON, &MyFrame::OnRemoveButtonClick, this);
+    zoomInButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
+                       { canvas->ZoomIn(); });
+    zoomOutButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
+                        { canvas->ZoomOut(); });
 }
 
 void MyFrame::OnAddButtonClick(wxCommandEvent &event)

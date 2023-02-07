@@ -19,6 +19,10 @@ public:
 
     int GetObjectCount() { return objectList.size(); }
     wxRect GetCanvasBounds() const;
+    double GetCanvasScale() const { return std::pow(ZOOM_FACTOR, zoomLevel); }
+
+    void ZoomIn();
+    void ZoomOut();
 
 private:
     void OnPaint(wxPaintEvent &evt);
@@ -39,4 +43,11 @@ private:
     bool shouldRotate;
 
     wxPoint2DDouble lastDragOrigin;
+
+    const double ZOOM_FACTOR = 1.1;
+    int zoomLevel = 0;
+
+    void SetupVirtualSize();
+
+    wxAffineMatrix2D ScaledTransform(const wxAffineMatrix2D &transform) const;
 };

@@ -25,11 +25,7 @@ DrawingCanvas::DrawingCanvas(wxWindow *parent, wxWindowID id, const wxPoint &pos
     this->shouldRotate = false;
 
     SetScrollRate(FromDIP(5), FromDIP(5));
-
-    auto virtualSize = GetCanvasBounds().GetSize();
-    virtualSize.IncBy(GetCanvasBounds().GetX() * 2, GetCanvasBounds().GetY() * 2);
-
-    SetVirtualSize(virtualSize);
+    SetupVirtualSize();
 }
 
 void DrawingCanvas::AddRect(int width, int height, int centerX, int centerY, double angle, wxColor color, const std::string &text)
@@ -87,6 +83,8 @@ void DrawingCanvas::OnPaint(wxPaintEvent &evt)
         gc->SetBrush(*wxWHITE_BRUSH);
         gc->SetPen(*wxWHITE_PEN);
 
+        gc->Scale(GetCanvasScale(), GetCanvasScale());
+
         gc->Clip(bounds);
 
         gc->DrawRectangle(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -95,7 +93,7 @@ void DrawingCanvas::OnPaint(wxPaintEvent &evt)
 
         for (const auto &object : objectList)
         {
-            gc->SetTransform(gc->CreateMatrix(object.transform));
+            gc->SetTransform(gc->CreateMatrix(ScaledTransform(object.transform)));
 
             gc->SetBrush(wxBrush(object.color));
             gc->DrawRectangle(object.rect.m_x, object.rect.m_y, object.rect.m_width, object.rect.m_height);
@@ -206,4 +204,35 @@ void DrawingCanvas::SendRectRemovedEvent(const wxString &rectTitle)
 wxRect DrawingCanvas::GetCanvasBounds() const
 {
     return wxRect(FromDIP(50), FromDIP(50), FromDIP(500), FromDIP(300));
+}
+
+wxAffineMatrix2D DrawingCanvas::ScaledTransform(const wxAffineMatrix2D &transform) const
+{
+    wxAffineMatrix2D t;
+    t.Scale(GetCanvasScale(), GetCanvasScale());
+    t.Concat(transform);
+    return t;
+}
+
+void DrawingCanvas::SetupVirtualSize()
+{
+    auto virtualSize = GetCanvasBounds().GetSize() * GetCanvasScale();
+    virtualSize.IncBy(GetCanvasBounds().GetX() * 2 * GetCanvasScale(),
+                      GetCanvasBounds().GetY() * 2 * GetCanvasScale());
+
+    SetVirtualSize(virtualSize);
+}
+
+void DrawingCanvas::ZoomIn()
+{
+    zoomLevel++;
+    SetupVirtualSize();
+    Refresh();
+}
+
+void DrawingCanvas::ZoomOut()
+{
+    zoomLevel--;
+    SetupVirtualSize();
+    Refresh();
 }

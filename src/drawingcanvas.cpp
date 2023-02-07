@@ -115,7 +115,7 @@ void DrawingCanvas::OnMouseDown(wxMouseEvent &event)
     auto clickedObjectIter = std::find_if(objectList.rbegin(), objectList.rend(), [event, this](const GraphicObject &o)
                                           {
                                               wxPoint2DDouble clickPos = event.GetPosition();
-                                              auto inv = ScaledTransform(o.transform);
+                                              auto inv = ReverseScrollTransform(ScaledTransform(o.transform));
                                               inv.Invert();
                                               clickPos = inv.TransformPoint(clickPos);
                                               return o.rect.Contains(clickPos); });
@@ -210,6 +210,16 @@ wxAffineMatrix2D DrawingCanvas::ScaledTransform(const wxAffineMatrix2D &transfor
 {
     wxAffineMatrix2D t;
     t.Scale(GetCanvasScale(), GetCanvasScale());
+    t.Concat(transform);
+    return t;
+}
+
+wxAffineMatrix2D DrawingCanvas::ReverseScrollTransform(const wxAffineMatrix2D &transform) const
+{
+    auto origin = CalcUnscrolledPosition({0, 0});
+
+    wxAffineMatrix2D t;
+    t.Translate(-origin.x, -origin.y);
     t.Concat(transform);
     return t;
 }

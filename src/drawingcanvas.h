@@ -50,4 +50,5 @@ private:
     void SetupVirtualSize();
 
     wxAffineMatrix2D ScaledTransform(const wxAffineMatrix2D &transform) const;
+    wxAffineMatrix2D ReverseScrollTransform(const wxAffineMatrix2D &transform) const;
 };

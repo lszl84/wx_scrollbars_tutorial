@@ -24,7 +24,7 @@ wxIMPLEMENT_APP(MyApp);
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
-    auto panel = new wxPanel(this, wxID_ANY);
+    auto panel = new wxScrolled<wxPanel>(this, wxID_ANY);
 
     const int WIDTH = FromDIP(30);
     const int HEIGHT = FromDIP(30);
@@ -43,8 +43,10 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
             square->Bind(wxEVT_LEFT_DOWN, [square, isDark](wxMouseEvent &event)
                          {
                              square->SetBackgroundColour(isDark ? wxColour(200, 100, 100, 128) : wxColour(100, 200, 100));
-                             square->Refresh();
-                         });
+                             square->Refresh(); });
         }
     }
+
+    panel->SetScrollRate(FromDIP(10), FromDIP(10));
+    panel->SetVirtualSize(COLS * WIDTH, ROWS * HEIGHT);
 }

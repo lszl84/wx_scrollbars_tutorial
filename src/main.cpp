@@ -18,6 +18,9 @@ private:
     wxImage image;
 
     void OnOpenImage(wxCommandEvent &event);
+    void OnZoomIn(wxCommandEvent &event);
+    void OnZoomOut(wxCommandEvent &event);
+
     void UpdateBitmapImage(const wxImage &image);
 };
 
@@ -40,11 +43,17 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     bitmap = new BufferedBitmap(this, wxID_ANY, wxBitmap(wxSize(1, 1)), wxDefaultPosition, FromDIP(wxSize(500, 200)));
 
     auto imageButton = new wxButton(this, wxID_ANY, "Load Image...");
+    auto zoomInButton = new wxButton(this, wxID_ANY, "Zoom In");
+    auto zoomOutButton = new wxButton(this, wxID_ANY, "Zoom Out");
 
     imageButton->Bind(wxEVT_BUTTON, &MyFrame::OnOpenImage, this);
+    zoomInButton->Bind(wxEVT_BUTTON, &MyFrame::OnZoomIn, this);
+    zoomOutButton->Bind(wxEVT_BUTTON, &MyFrame::OnZoomOut, this);
 
     auto buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     buttonSizer->Add(imageButton, 0, wxLEFT, FromDIP(5));
+    buttonSizer->Add(zoomInButton, 0, wxLEFT, FromDIP(5));
+    buttonSizer->Add(zoomOutButton, 0, wxLEFT, FromDIP(5));
 
     sizer->Add(bitmap, 1, wxEXPAND | wxALL, FromDIP(10));
     sizer->Add(buttonSizer, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, FromDIP(10));
@@ -72,4 +81,14 @@ void MyFrame::UpdateBitmapImage(const wxImage &image)
 {
     bitmap->SetBitmap(wxBitmap(image));
     this->Layout();
+}
+
+void MyFrame::OnZoomIn(wxCommandEvent &event)
+{
+    bitmap->ZoomIn();
+}
+
+void MyFrame::OnZoomOut(wxCommandEvent &event)
+{
+    bitmap->ZoomOut();
 }

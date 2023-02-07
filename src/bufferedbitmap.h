@@ -21,14 +21,16 @@ public:
         wxAutoBufferedPaintDC dc(this);
         dc.Clear();
 
+        DoPrepareDC(dc);
+
         wxGraphicsContext *gc = wxGraphicsContext::Create(dc);
 
         if (gc)
         {
             // scaling consistent with wxStaticBitmap
-            const wxSize drawSize = ToDIP(GetClientSize());
+            const wxSize drawSize = ToDIP(GetVirtualSize());
 
-            const wxSize bmpSize = bitmap.GetSize();
+            const wxSize bmpSize = GetScaledBitmapSize();
 
             double w = bmpSize.GetWidth();
             double h = bmpSize.GetHeight();
@@ -45,14 +47,52 @@ public:
     void SetBitmap(const wxBitmap &bitmap)
     {
         this->bitmap = bitmap;
+
+        SetScrollRate(FromDIP(10), FromDIP(10));
+        SetVirtualSize(FromDIP(GetScaledBitmapSize()));
+
         this->Refresh();
     }
 
-    const wxBitmap &GetBitmap()
+    const wxBitmap &GetBitmap() const
     {
         return bitmap;
     }
 
+    double GetZoomMultiplier() const
+    {
+        return pow(ZOOM_FACTOR, zoomLevel);
+    }
+
+    double GetZoomPercentage() const
+    {
+        return GetZoomMultiplier() * 100;
+    }
+
+    void ZoomIn()
+    {
+        zoomLevel++;
+        SetVirtualSize(FromDIP(GetScaledBitmapSize()));
+        this->Refresh();
+    }
+
+    void ZoomOut()
+    {
+        zoomLevel--;
+        SetVirtualSize(FromDIP(GetScaledBitmapSize()));
+        this->Refresh();
+    }
+
 private:
     wxBitmap bitmap;
+
+    const double ZOOM_FACTOR = 1.1;
+    int zoomLevel = 0;
+
+    wxSize GetScaledBitmapSize() const
+    {
+        const wxSize bmpSize = bitmap.GetSize();
+        const double zoom = GetZoomMultiplier();
+        return wxSize(bmpSize.GetWidth() * zoom, bmpSize.GetHeight() * zoom);
+    }
 };

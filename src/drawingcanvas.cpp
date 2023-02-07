@@ -112,10 +112,10 @@ void DrawingCanvas::OnPaint(wxPaintEvent &evt)
 
 void DrawingCanvas::OnMouseDown(wxMouseEvent &event)
 {
-    auto clickedObjectIter = std::find_if(objectList.rbegin(), objectList.rend(), [event](const GraphicObject &o)
+    auto clickedObjectIter = std::find_if(objectList.rbegin(), objectList.rend(), [event, this](const GraphicObject &o)
                                           {
                                               wxPoint2DDouble clickPos = event.GetPosition();
-                                              auto inv = o.transform;
+                                              auto inv = ScaledTransform(o.transform);
                                               inv.Invert();
                                               clickPos = inv.TransformPoint(clickPos);
                                               return o.rect.Contains(clickPos); });
@@ -143,13 +143,13 @@ void DrawingCanvas::OnMouseMove(wxMouseEvent &event)
         if (shouldRotate)
         {
             double absoluteYDiff = event.GetPosition().y - lastDragOrigin.m_y;
-            draggedObj->transform.Rotate(absoluteYDiff / 100.0 * M_PI);
+            draggedObj->transform.Rotate(absoluteYDiff / GetCanvasScale() / 100.0 * M_PI);
         }
         else
         {
             auto dragVector = event.GetPosition() - lastDragOrigin;
 
-            auto inv = draggedObj->transform;
+            auto inv = ScaledTransform(draggedObj->transform);
             inv.Invert();
             dragVector = inv.TransformDistance(dragVector);
 

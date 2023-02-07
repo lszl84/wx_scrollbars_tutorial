@@ -18,6 +18,7 @@ public:
     void RemoveTopRect();
 
     int GetObjectCount() { return objectList.size(); }
+    wxRect GetCanvasBounds() const;
 
 private:
     void OnPaint(wxPaintEvent &evt);

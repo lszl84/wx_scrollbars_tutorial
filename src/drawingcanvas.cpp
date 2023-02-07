@@ -1,6 +1,7 @@
 #include "drawingcanvas.h"
 #include <wx/graphics.h>
 #include <wx/dcbuffer.h>
+#include <wx/settings.h>
 #include <iostream>
 
 wxDEFINE_EVENT(CANVAS_RECT_ADDED, wxCommandEvent);
@@ -69,6 +70,20 @@ void DrawingCanvas::OnPaint(wxPaintEvent &evt)
 
     if (gc)
     {
+        gc->SetBrush(wxSystemSettings::GetAppearance().IsDark() ? wxColor(50, 50, 50) : wxColor(200, 200, 200));
+        gc->DrawRectangle(0, 0, this->GetSize().GetWidth(), this->GetSize().GetHeight());
+
+        wxRect bounds = GetCanvasBounds();
+
+        gc->SetBrush(*wxWHITE_BRUSH);
+        gc->SetPen(*wxWHITE_PEN);
+
+        gc->Clip(bounds);
+
+        gc->DrawRectangle(bounds.x, bounds.y, bounds.width, bounds.height);
+
+        gc->SetPen(*wxTRANSPARENT_PEN);
+
         for (const auto &object : objectList)
         {
             gc->SetTransform(gc->CreateMatrix(object.transform));
@@ -177,4 +192,9 @@ void DrawingCanvas::SendRectRemovedEvent(const wxString &rectTitle)
     event.SetString(rectTitle);
 
     ProcessWindowEvent(event);
+}
+
+wxRect DrawingCanvas::GetCanvasBounds() const
+{
+    return wxRect(FromDIP(50), FromDIP(50), FromDIP(500), FromDIP(300));
 }

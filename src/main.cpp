@@ -62,8 +62,12 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 void MyFrame::OnAddButtonClick(wxCommandEvent &event)
 {
     std::uniform_int_distribution sizeDistrib(this->FromDIP(50), this->FromDIP(100));
-    std::uniform_int_distribution xDistrib(0, canvas->GetSize().GetWidth());
-    std::uniform_int_distribution yDistrib(0, canvas->GetSize().GetHeight());
+    std::uniform_int_distribution xDistrib(
+        canvas->GetCanvasBounds().GetLeft(),
+        canvas->GetCanvasBounds().GetRight());
+    std::uniform_int_distribution yDistrib(
+        canvas->GetCanvasBounds().GetTop(),
+        canvas->GetCanvasBounds().GetBottom());
     std::uniform_real_distribution angleDistrib(0.0, M_PI * 2.0);
 
     std::uniform_int_distribution colorDistrib(0, 0xFFFFFF);

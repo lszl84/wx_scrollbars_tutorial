@@ -8,7 +8,7 @@
 wxDECLARE_EVENT(CANVAS_RECT_ADDED, wxCommandEvent);
 wxDECLARE_EVENT(CANVAS_RECT_REMOVED, wxCommandEvent);
 
-class DrawingCanvas : public wxWindow
+class DrawingCanvas : public wxScrolled<wxWindow>
 {
 public:
     DrawingCanvas(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);

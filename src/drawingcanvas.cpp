@@ -7,7 +7,7 @@
 wxDEFINE_EVENT(CANVAS_RECT_ADDED, wxCommandEvent);
 wxDEFINE_EVENT(CANVAS_RECT_REMOVED, wxCommandEvent);
 
-DrawingCanvas::DrawingCanvas(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxWindow(parent, id, pos, size)
+DrawingCanvas::DrawingCanvas(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxScrolled<wxWindow>(parent, id, pos, size)
 {
     this->SetBackgroundStyle(wxBG_STYLE_PAINT); // needed for windows
 
@@ -23,6 +23,13 @@ DrawingCanvas::DrawingCanvas(wxWindow *parent, wxWindowID id, const wxPoint &pos
 
     this->draggedObj = nullptr;
     this->shouldRotate = false;
+
+    SetScrollRate(FromDIP(5), FromDIP(5));
+
+    auto virtualSize = GetCanvasBounds().GetSize();
+    virtualSize.IncBy(GetCanvasBounds().GetX() * 2, GetCanvasBounds().GetY() * 2);
+
+    SetVirtualSize(virtualSize);
 }
 
 void DrawingCanvas::AddRect(int width, int height, int centerX, int centerY, double angle, wxColor color, const std::string &text)
@@ -66,12 +73,14 @@ void DrawingCanvas::OnPaint(wxPaintEvent &evt)
     wxAutoBufferedPaintDC dc(this);
     dc.Clear();
 
+    DoPrepareDC(dc);
+
     wxGraphicsContext *gc = wxGraphicsContext::Create(dc);
 
     if (gc)
     {
         gc->SetBrush(wxSystemSettings::GetAppearance().IsDark() ? wxColor(50, 50, 50) : wxColor(200, 200, 200));
-        gc->DrawRectangle(0, 0, this->GetSize().GetWidth(), this->GetSize().GetHeight());
+        gc->DrawRectangle(0, 0, this->GetVirtualSize().GetWidth(), this->GetVirtualSize().GetHeight());
 
         wxRect bounds = GetCanvasBounds();
 

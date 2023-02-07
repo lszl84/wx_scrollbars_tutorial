@@ -1,6 +1,8 @@
 #include <wx/wx.h>
 
-#include "bufferedbitmap.h"
+#include <random>
+
+#include "drawingcanvas.h"
 
 class MyApp : public wxApp
 {
@@ -8,87 +10,70 @@ public:
     virtual bool OnInit();
 };
 
+wxIMPLEMENT_APP(MyApp);
+
 class MyFrame : public wxFrame
 {
 public:
     MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 
 private:
-    BufferedBitmap *bitmap;
-    wxImage image;
+    DrawingCanvas *canvas;
 
-    void OnOpenImage(wxCommandEvent &event);
-    void OnZoomIn(wxCommandEvent &event);
-    void OnZoomOut(wxCommandEvent &event);
+    int rectCount = 0;
+    std::mt19937 randomGen;
 
-    void UpdateBitmapImage(const wxImage &image);
+    void OnAddButtonClick(wxCommandEvent &event);
+    void OnRemoveButtonClick(wxCommandEvent &event);
 };
 
 bool MyApp::OnInit()
 {
-    wxInitAllImageHandlers();
-
     MyFrame *frame = new MyFrame("Hello World", wxDefaultPosition, wxDefaultSize);
     frame->Show(true);
     return true;
 }
 
-wxIMPLEMENT_APP(MyApp);
-
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
-    : wxFrame(NULL, wxID_ANY, title, pos, size)
+    : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    bitmap = new BufferedBitmap(this, wxID_ANY, wxBitmap(wxSize(1, 1)), wxDefaultPosition, FromDIP(wxSize(500, 200)));
+    wxPanel *buttonPanel = new wxPanel(this);
+    wxButton *addRectButton = new wxButton(buttonPanel, wxID_ANY, "Add Rect");
+    wxButton *removeLastButton = new wxButton(buttonPanel, wxID_ANY, "Remove Top");
 
-    auto imageButton = new wxButton(this, wxID_ANY, "Load Image...");
-    auto zoomInButton = new wxButton(this, wxID_ANY, "Zoom In");
-    auto zoomOutButton = new wxButton(this, wxID_ANY, "Zoom Out");
+    wxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+    buttonSizer->Add(addRectButton, 0, wxEXPAND | wxALL, FromDIP(3));
+    buttonSizer->Add(removeLastButton, 0, wxEXPAND | wxALL, FromDIP(3));
 
-    imageButton->Bind(wxEVT_BUTTON, &MyFrame::OnOpenImage, this);
-    zoomInButton->Bind(wxEVT_BUTTON, &MyFrame::OnZoomIn, this);
-    zoomOutButton->Bind(wxEVT_BUTTON, &MyFrame::OnZoomOut, this);
+    buttonPanel->SetSizer(buttonSizer);
 
-    auto buttonSizer = new wxBoxSizer(wxHORIZONTAL);
-    buttonSizer->Add(imageButton, 0, wxLEFT, FromDIP(5));
-    buttonSizer->Add(zoomInButton, 0, wxLEFT, FromDIP(5));
-    buttonSizer->Add(zoomOutButton, 0, wxLEFT, FromDIP(5));
+    canvas = new DrawingCanvas(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    sizer->Add(canvas, 1, wxEXPAND | wxALL, 0);
+    sizer->Add(buttonPanel, 0, wxEXPAND | wxALL, 0);
 
-    sizer->Add(bitmap, 1, wxEXPAND | wxALL, FromDIP(10));
-    sizer->Add(buttonSizer, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, FromDIP(10));
+    this->SetSizer(sizer);
 
-    this->SetSizerAndFit(sizer);
+    addRectButton->Bind(wxEVT_BUTTON, &MyFrame::OnAddButtonClick, this);
+    removeLastButton->Bind(wxEVT_BUTTON, &MyFrame::OnRemoveButtonClick, this);
 }
 
-void MyFrame::OnOpenImage(wxCommandEvent &event)
+void MyFrame::OnAddButtonClick(wxCommandEvent &event)
 {
-    wxFileDialog openFileDialog(this, _("Open Image"), "", "", "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    std::uniform_int_distribution sizeDistrib(this->FromDIP(50), this->FromDIP(100));
+    std::uniform_int_distribution xDistrib(0, canvas->GetSize().GetWidth());
+    std::uniform_int_distribution yDistrib(0, canvas->GetSize().GetHeight());
+    std::uniform_real_distribution angleDistrib(0.0, M_PI * 2.0);
 
-    if (openFileDialog.ShowModal() == wxID_CANCEL)
-        return;
+    std::uniform_int_distribution colorDistrib(0, 0xFFFFFF);
 
-    if (!image.LoadFile(openFileDialog.GetPath()))
-    {
-        wxMessageBox("Failed to load image", "Error", wxOK | wxICON_ERROR);
-        return;
-    }
-
-    UpdateBitmapImage(image);
+    rectCount++;
+    canvas->AddRect(sizeDistrib(randomGen), sizeDistrib(randomGen), xDistrib(randomGen), yDistrib(randomGen),
+                    angleDistrib(randomGen), wxColour(colorDistrib(randomGen)), "Rect #" + std::to_string(rectCount));
 }
 
-void MyFrame::UpdateBitmapImage(const wxImage &image)
+void MyFrame::OnRemoveButtonClick(wxCommandEvent &event)
 {
-    bitmap->SetBitmap(wxBitmap(image));
-    this->Layout();
-}
-
-void MyFrame::OnZoomIn(wxCommandEvent &event)
-{
-    bitmap->ZoomIn();
-}
-
-void MyFrame::OnZoomOut(wxCommandEvent &event)
-{
-    bitmap->ZoomOut();
+    canvas->RemoveTopRect();
 }

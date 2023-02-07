@@ -1,5 +1,7 @@
 #include <wx/wx.h>
 
+#include "bufferedbitmap.h"
+
 class MyApp : public wxApp
 {
 public:
@@ -10,10 +12,19 @@ class MyFrame : public wxFrame
 {
 public:
     MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
+
+private:
+    BufferedBitmap *bitmap;
+    wxImage image;
+
+    void OnOpenImage(wxCommandEvent &event);
+    void UpdateBitmapImage(const wxImage &image);
 };
 
 bool MyApp::OnInit()
 {
+    wxInitAllImageHandlers();
+
     MyFrame *frame = new MyFrame("Hello World", wxDefaultPosition, wxDefaultSize);
     frame->Show(true);
     return true;
@@ -24,29 +35,41 @@ wxIMPLEMENT_APP(MyApp);
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
-    auto panel = new wxScrolled<wxPanel>(this, wxID_ANY);
+    auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    const int WIDTH = FromDIP(30);
-    const int HEIGHT = FromDIP(30);
+    bitmap = new BufferedBitmap(this, wxID_ANY, wxBitmap(wxSize(1, 1)), wxDefaultPosition, FromDIP(wxSize(500, 200)));
 
-    const int COLS = 20;
-    const int ROWS = 15;
+    auto imageButton = new wxButton(this, wxID_ANY, "Load Image...");
 
-    for (int i = 0; i < ROWS; i++)
+    imageButton->Bind(wxEVT_BUTTON, &MyFrame::OnOpenImage, this);
+
+    auto buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+    buttonSizer->Add(imageButton, 0, wxLEFT, FromDIP(5));
+
+    sizer->Add(bitmap, 1, wxEXPAND | wxALL, FromDIP(10));
+    sizer->Add(buttonSizer, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, FromDIP(10));
+
+    this->SetSizerAndFit(sizer);
+}
+
+void MyFrame::OnOpenImage(wxCommandEvent &event)
+{
+    wxFileDialog openFileDialog(this, _("Open Image"), "", "", "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (openFileDialog.ShowModal() == wxID_CANCEL)
+        return;
+
+    if (!image.LoadFile(openFileDialog.GetPath()))
     {
-        for (int j = 0; j < COLS; j++)
-        {
-            auto square = new wxPanel(panel, wxID_ANY, wxPoint(j * WIDTH, i * HEIGHT), wxSize(WIDTH, HEIGHT));
-            bool isDark = i % 2 == j % 2;
-            square->SetBackgroundColour(isDark ? *wxBLACK : *wxWHITE);
-
-            square->Bind(wxEVT_LEFT_DOWN, [square, isDark](wxMouseEvent &event)
-                         {
-                             square->SetBackgroundColour(isDark ? wxColour(200, 100, 100, 128) : wxColour(100, 200, 100));
-                             square->Refresh(); });
-        }
+        wxMessageBox("Failed to load image", "Error", wxOK | wxICON_ERROR);
+        return;
     }
 
-    panel->SetScrollRate(FromDIP(10), FromDIP(10));
-    panel->SetVirtualSize(COLS * WIDTH, ROWS * HEIGHT);
+    UpdateBitmapImage(image);
+}
+
+void MyFrame::UpdateBitmapImage(const wxImage &image)
+{
+    bitmap->SetBitmap(wxBitmap(image));
+    this->Layout();
 }

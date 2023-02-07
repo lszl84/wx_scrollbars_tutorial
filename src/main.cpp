@@ -24,16 +24,27 @@ wxIMPLEMENT_APP(MyApp);
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
-    auto panel = new wxScrolled<wxPanel>(this, wxID_ANY);
-    panel->SetScrollRate(0, FromDIP(10));
+    auto panel = new wxPanel(this, wxID_ANY);
 
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    const int WIDTH = FromDIP(30);
+    const int HEIGHT = FromDIP(30);
 
-    for (int i = 0; i < 15; i++)
+    const int COLS = 20;
+    const int ROWS = 15;
+
+    for (int i = 0; i < ROWS; i++)
     {
-        auto button = new wxButton(panel, wxID_ANY, "Button " + std::to_string(i));
-        sizer->Add(button, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
-    }
+        for (int j = 0; j < COLS; j++)
+        {
+            auto square = new wxPanel(panel, wxID_ANY, wxPoint(j * WIDTH, i * HEIGHT), wxSize(WIDTH, HEIGHT));
+            bool isDark = i % 2 == j % 2;
+            square->SetBackgroundColour(isDark ? *wxBLACK : *wxWHITE);
 
-    panel->SetSizer(sizer);
+            square->Bind(wxEVT_LEFT_DOWN, [square, isDark](wxMouseEvent &event)
+                         {
+                             square->SetBackgroundColour(isDark ? wxColour(200, 100, 100, 128) : wxColour(100, 200, 100));
+                             square->Refresh();
+                         });
+        }
+    }
 }

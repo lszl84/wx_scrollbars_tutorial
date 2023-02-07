@@ -71,15 +71,25 @@ public:
 
     void ZoomIn()
     {
+        auto centerPos = CalcUnscrolledPosition(wxPoint(GetClientSize().GetWidth() / 2, GetClientSize().GetHeight() / 2));
+
         zoomLevel++;
+
+        CenterAfterZoom(centerPos, centerPos * ZOOM_FACTOR);
         SetVirtualSize(FromDIP(GetScaledBitmapSize()));
+
         this->Refresh();
     }
 
     void ZoomOut()
     {
+        auto centerPos = CalcUnscrolledPosition(wxPoint(GetClientSize().GetWidth() / 2, GetClientSize().GetHeight() / 2));
+
         zoomLevel--;
+
+        CenterAfterZoom(centerPos, centerPos * (1.0 / ZOOM_FACTOR));
         SetVirtualSize(FromDIP(GetScaledBitmapSize()));
+
         this->Refresh();
     }
 
@@ -94,5 +104,18 @@ private:
         const wxSize bmpSize = bitmap.GetSize();
         const double zoom = GetZoomMultiplier();
         return wxSize(bmpSize.GetWidth() * zoom, bmpSize.GetHeight() * zoom);
+    }
+
+    void CenterAfterZoom(wxPoint previousCenter, wxPoint currentCenter)
+    {
+        wxPoint pixelsPerUnit;
+        GetScrollPixelsPerUnit(&pixelsPerUnit.x, &pixelsPerUnit.y);
+
+        auto delta = currentCenter - previousCenter;
+
+        auto destX = GetViewStart().x + delta.x / pixelsPerUnit.x;
+        auto destY = GetViewStart().y + delta.y / pixelsPerUnit.y;
+
+        Scroll(destX, destY);
     }
 };

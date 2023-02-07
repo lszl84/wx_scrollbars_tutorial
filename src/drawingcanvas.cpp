@@ -235,14 +235,37 @@ void DrawingCanvas::SetupVirtualSize()
 
 void DrawingCanvas::ZoomIn()
 {
+    auto centerPos = CalcUnscrolledPosition(wxPoint(GetClientSize().GetWidth() / 2, GetClientSize().GetHeight() / 2));
+
     zoomLevel++;
+
+    CenterAfterZoom(centerPos, centerPos * ZOOM_FACTOR);
     SetupVirtualSize();
+
     Refresh();
 }
 
 void DrawingCanvas::ZoomOut()
 {
+    auto centerPos = CalcUnscrolledPosition(wxPoint(GetClientSize().GetWidth() / 2, GetClientSize().GetHeight() / 2));
+
     zoomLevel--;
+
+    CenterAfterZoom(centerPos, centerPos * (1.0 / ZOOM_FACTOR));
     SetupVirtualSize();
+
     Refresh();
+}
+
+void DrawingCanvas::CenterAfterZoom(wxPoint previousCenter, wxPoint currentCenter)
+{
+    wxPoint pixelsPerUnit;
+    GetScrollPixelsPerUnit(&pixelsPerUnit.x, &pixelsPerUnit.y);
+
+    auto delta = currentCenter - previousCenter;
+
+    auto destX = GetViewStart().x + delta.x / pixelsPerUnit.x;
+    auto destY = GetViewStart().y + delta.y / pixelsPerUnit.y;
+
+    Scroll(destX, destY);
 }

@@ -51,4 +51,6 @@ private:
 
     wxAffineMatrix2D ScaledTransform(const wxAffineMatrix2D &transform) const;
     wxAffineMatrix2D ReverseScrollTransform(const wxAffineMatrix2D &transform) const;
+
+    void CenterAfterZoom(wxPoint previousCenter, wxPoint currentCenter);
 };

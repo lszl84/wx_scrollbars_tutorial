@@ -1,6 +1,6 @@
 # wx_scrollbars_tutorial
 
-Scrolling the UI content in wxWidgets.
+Scrolling the UI content in wxWidgets. Video tutorial: https://youtu.be/o1Xm-mWJHNI
 
 The `main.cpp` file contains the code for the last part of the tutorial (scrolling the canvas with rectangles).
 
